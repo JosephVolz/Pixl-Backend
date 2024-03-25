@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "nodemon ./bin/www.js"
+    "start": "nodemon ./netlify/functions/api.js"
   },
   "dependencies": {
     "@netlify/functions": "^2.6.0",

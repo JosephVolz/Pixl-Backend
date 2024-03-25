@@ -9,8 +9,8 @@ import serverless from "serverless-http";
 import http from "http";
 
 // import routes
-import {router as profilesRouter} from "../routes/profiles.js";
-import {router as authRouter} from "../routes/auth.js";
+import {router as profilesRouter} from "../../routes/profiles.js";
+import {router as authRouter} from "../../routes/auth.js";
 
 // create the express app
 const app = express();
