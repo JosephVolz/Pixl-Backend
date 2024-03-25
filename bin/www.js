@@ -1,59 +1,39 @@
-// module dependencies
-import {app} from "../server.js";
-import http from "http";
+// npm packages
+import "dotenv/config.js";
+import express from "express";
+import logger from "morgan";
+import cors from "cors";
+import formData from "express-form-data";
+import serverless from "serverless-http";
 
-// get port from environment and store in Express
-const port = normalizePort(process.env.PORT || "5000");
-app.set("port", port);
+// connect to MongoDB with mongoose
+import "./config/database.js";
 
-// create HTTP server
-const server = http.createServer(app);
+// import routes
+import {router as profilesRouter} from "./routes/profiles.js";
+import {router as authRouter} from "./routes/auth.js";
 
-// listen on provided port, on all network interfaces
-server.listen(port);
-server.on("error", onError);
-server.on("listening", onListening);
+// create the express app
+const app = express();
 
-// normalize a port into a number, string, or false
-function normalizePort(val) {
-  const port = parseInt(val, 10);
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
-  if (port >= 0) {
-    // port number
-    return port;
-  }
-  return false;
-}
+// basic middleware
+app.use(cors());
+app.use(logger("dev"));
+app.use(express.json());
+app.use(formData.parse());
 
-// event listener for HTTP server `error` event
-function onError(error) {
-  if (error.syscall !== "listen") {
-    throw error;
-  }
+// mount imported routes
+app.use("/api/profiles", profilesRouter);
+app.use("/api/auth", authRouter);
 
-  const bind = typeof port === "string" ? `Pipe ${port}` : `Port ${port}`;
+// handle 404 errors
+app.use(function (req, res, next) {
+  res.status(404).json({err: "Not found"});
+});
 
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case "EACCES":
-      console.error(`${bind} requires elevated privileges`);
-      process.exit(1);
-      break;
-    case "EADDRINUSE":
-      console.error(`${bind} is already in use`);
-      process.exit(1);
-      break;
-    default:
-      throw error;
-  }
-}
+// handle all other errors
+app.use(function (err, req, res, next) {
+  res.status(err.status || 500).json({err: err.message});
+});
 
-// event listener for HTTP server `listening` event
-function onListening() {
-  const addr = server.address();
-  const bind = typeof addr === "string" ? `pipe ${addr}` : `port ${addr.port}`;
-  console.log(`Listening on ${bind}`);
-}
+export const handler = serverless(app);
