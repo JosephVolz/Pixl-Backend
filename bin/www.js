@@ -6,12 +6,11 @@ import cors from "cors";
 import formData from "express-form-data";
 import serverless from "serverless-http";
 
-// connect to MongoDB with mongoose
-import "./config/database.js";
+import http from "http";
 
 // import routes
-import {router as profilesRouter} from "./routes/profiles.js";
-import {router as authRouter} from "./routes/auth.js";
+import {router as profilesRouter} from "../routes/profiles.js";
+import {router as authRouter} from "../routes/auth.js";
 
 // create the express app
 const app = express();
@@ -34,6 +33,22 @@ app.use(function (req, res, next) {
 // handle all other errors
 app.use(function (err, req, res, next) {
   res.status(err.status || 500).json({err: err.message});
+});
+
+// get port from environment and store in Express
+const port = process.env.PORT || 5000;
+app.set("port", port);
+
+// create HTTP server
+const server = http.createServer(app);
+
+// listen on provided port, on all network interfaces
+server.listen(port);
+
+server.on("listening", () => {
+  const addr = server.address();
+  const bind = typeof addr === "string" ? `pipe ${addr}` : `port ${addr.port}`;
+  console.log(`Listening on ${bind}`);
 });
 
 export const handler = serverless(app);
